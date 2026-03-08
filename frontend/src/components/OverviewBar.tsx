@@ -1,6 +1,5 @@
 import React from 'react';
 import type { CityOverview } from '../types';
-import { getBlightColor } from '../utils';
 import SyncStatus from './SyncStatus';
 
 interface OverviewBarProps {

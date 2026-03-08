@@ -125,7 +125,7 @@ export function explainBlockAccess(p: BlockProperties): string {
    2. CORRIDOR-LEVEL EXPLANATIONS
    ────────────────────────────────────────────── */
 
-export function explainCorridor(corridor: Corridor, allBlocks: BlockCollection | null): string {
+export function explainCorridor(corridor: Corridor, _allBlocks: BlockCollection | null): string {
   const parts: string[] = [];
 
   parts.push(

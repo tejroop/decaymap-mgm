@@ -3,9 +3,6 @@ import type { BlockCollection, BlockFeature, Corridor, CityOverview } from '../t
 import {
   answerQuestion,
   getSuggestedQuestions,
-  explainCityOverview,
-  explainBlockRisk,
-  explainBlockAction,
   type ChatMessage,
   type ChatContext,
 } from '../aiExplainer';
