@@ -1,8 +1,38 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Polyline, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { BlockCollection, BlockFeature, Corridor } from '../types';
 import { getBlightColor, getRiskLabel } from '../utils';
+
+/** Validate that a coordinate pair [lng, lat] contains finite numbers */
+function isValidCoord(coord: unknown): boolean {
+  if (!Array.isArray(coord) || coord.length < 2) return false;
+  return Number.isFinite(coord[0]) && Number.isFinite(coord[1]);
+}
+
+/** Validate that a coordinate ring is valid */
+function isValidRing(ring: unknown): boolean {
+  if (!Array.isArray(ring) || ring.length < 3) return false;
+  return ring.every(isValidCoord);
+}
+
+/** Check if a GeoJSON feature has valid geometry */
+function hasValidGeometry(feature: any): boolean {
+  try {
+    const geom = feature?.geometry;
+    if (!geom?.type || !geom?.coordinates) return false;
+    if (geom.type === 'Polygon') {
+      return Array.isArray(geom.coordinates) && geom.coordinates.every(isValidRing);
+    }
+    if (geom.type === 'MultiPolygon') {
+      return Array.isArray(geom.coordinates) &&
+        geom.coordinates.every((poly: any) => Array.isArray(poly) && poly.every(isValidRing));
+    }
+    if (geom.type === 'Point') return isValidCoord(geom.coordinates);
+    if (geom.type === 'LineString') return Array.isArray(geom.coordinates) && geom.coordinates.every(isValidCoord);
+    return true;
+  } catch { return false; }
+}
 
 interface DecayMapProps {
   data: BlockCollection | null;
@@ -15,9 +45,15 @@ interface DecayMapProps {
 function FlyToSelected({ selected }: { selected: BlockFeature | null }) {
   const map = useMap();
   useEffect(() => {
-    if (selected) {
-      const bounds = L.geoJSON(selected.geometry as any).getBounds();
+    if (!selected) return;
+    try {
+      if (!hasValidGeometry(selected)) return;
+      const layer = L.geoJSON(selected.geometry as any);
+      const bounds = layer.getBounds();
+      if (!bounds.isValid()) return;
       map.flyToBounds(bounds, { padding: [100, 100], maxZoom: 14, duration: 0.8 });
+    } catch (err) {
+      console.warn('FlyToSelected error:', err);
     }
   }, [selected, map]);
   return null;
@@ -26,14 +62,20 @@ function FlyToSelected({ selected }: { selected: BlockFeature | null }) {
 function FlyToCorridor({ corridor, corridors }: { corridor: string | null; corridors: Corridor[] }) {
   const map = useMap();
   useEffect(() => {
-    if (corridor) {
+    if (!corridor) return;
+    try {
       const c = corridors.find(co => co.id === corridor);
       if (c && c.blocks.length > 0) {
+        const validBlocks = c.blocks.filter(b => Number.isFinite(b.lat) && Number.isFinite(b.lng));
+        if (validBlocks.length === 0) return;
         const bounds = L.latLngBounds(
-          c.blocks.map(b => [b.lat, b.lng] as [number, number])
+          validBlocks.map(b => [b.lat, b.lng] as [number, number])
         );
+        if (!bounds.isValid()) return;
         map.flyToBounds(bounds, { padding: [100, 100], duration: 1 });
       }
+    } catch (err) {
+      console.warn('FlyToCorridor error:', err);
     }
   }, [corridor, corridors, map]);
   return null;
@@ -41,6 +83,16 @@ function FlyToCorridor({ corridor, corridors }: { corridor: string | null; corri
 
 export default function DecayMap({ data, selected, onSelect, corridors, activeCorridor }: DecayMapProps) {
   const geoJsonRef = useRef<L.GeoJSON | null>(null);
+
+  // Filter out features with invalid coordinates to prevent Leaflet NaN crashes
+  const safeData = useMemo(() => {
+    if (!data) return null;
+    const validFeatures = data.features.filter(f => hasValidGeometry(f));
+    if (validFeatures.length !== data.features.length) {
+      console.warn(`Filtered ${data.features.length - validFeatures.length} features with invalid geometry`);
+    }
+    return { ...data, features: validFeatures } as BlockCollection;
+  }, [data]);
 
   // Build a set of corridor block IDs for fast lookup
   const corridorBlockIds = new Set<string>();
@@ -113,7 +165,9 @@ export default function DecayMap({ data, selected, onSelect, corridors, activeCo
 
   // Corridor polylines
   const corridorLines = corridors.map(corridor => {
-    const coords = corridor.blocks.map(b => [b.lat, b.lng] as [number, number]);
+    const coords = corridor.blocks
+      .filter(b => Number.isFinite(b.lat) && Number.isFinite(b.lng))
+      .map(b => [b.lat, b.lng] as [number, number]);
     if (coords.length < 2) return null;
     const isActive = activeCorridor === corridor.id;
 
@@ -142,11 +196,11 @@ export default function DecayMap({ data, selected, onSelect, corridors, activeCo
         attribution='&copy; <a href="https://stadiamaps.com/">Stadia</a>'
         url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
       />
-      {data && (
+      {safeData && (
         <GeoJSON
           key={`${selected?.properties.id || 'none'}-${activeCorridor || 'none'}`}
           ref={geoJsonRef as any}
-          data={data as any}
+          data={safeData as any}
           style={style}
           onEachFeature={onEachFeature}
         />
