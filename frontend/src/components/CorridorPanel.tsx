@@ -36,8 +36,6 @@ const CorridorPanel: React.FC<CorridorPanelProps> = ({
               const isActive = activeCorridor === corridor.id;
               const severityColor =
                 corridor.severity === 'critical' ? '#7f1d1d' : '#b91c1c';
-              const _severityBg =
-                corridor.severity === 'critical' ? '#fef2f2' : '#fff7ed';
 
               return (
                 <button
