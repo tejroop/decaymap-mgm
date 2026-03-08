@@ -164,16 +164,16 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between px-4 pb-2">
                   <div>
-                    <h3 className="text-sm font-bold text-stone-800">{selectedBlock.properties.name || `Block ${selectedBlock.properties.block_id}`}</h3>
+                    <h3 className="text-sm font-bold text-stone-800">{selectedBlock.properties.name || `Block ${selectedBlock.properties.id}`}</h3>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-2xl font-black" style={{ color: selectedBlock.properties.blight_score > 60 ? '#dc2626' : selectedBlock.properties.blight_score > 40 ? '#ea580c' : '#16a34a' }}>
-                        {selectedBlock.properties.blight_score.toFixed(0)}
+                      <span className="text-2xl font-black" style={{ color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a' }}>
+                        {selectedBlock.properties.composite_score.toFixed(0)}
                       </span>
                       <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{
-                        backgroundColor: selectedBlock.properties.blight_score > 60 ? '#fef2f2' : selectedBlock.properties.blight_score > 40 ? '#fff7ed' : '#f0fdf4',
-                        color: selectedBlock.properties.blight_score > 60 ? '#dc2626' : selectedBlock.properties.blight_score > 40 ? '#ea580c' : '#16a34a'
+                        backgroundColor: selectedBlock.properties.composite_score > 60 ? '#fef2f2' : selectedBlock.properties.composite_score > 40 ? '#fff7ed' : '#f0fdf4',
+                        color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a'
                       }}>
-                        {selectedBlock.properties.blight_score > 60 ? 'CRITICAL' : selectedBlock.properties.blight_score > 40 ? 'AT RISK' : 'STABLE'}
+                        {selectedBlock.properties.composite_score > 60 ? 'CRITICAL' : selectedBlock.properties.composite_score > 40 ? 'AT RISK' : 'STABLE'}
                       </span>
                     </div>
                   </div>
@@ -184,19 +184,19 @@ const App: React.FC = () => {
                 <div className="px-4 pb-4 grid grid-cols-2 gap-2">
                   <div className="bg-stone-100 rounded-lg p-2.5 text-center">
                     <div className="text-[10px] text-stone-500">Code Violations</div>
-                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.code_violations}</div>
+                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.count_code_violations}</div>
                   </div>
                   <div className="bg-stone-100 rounded-lg p-2.5 text-center">
                     <div className="text-[10px] text-stone-500">311 Requests</div>
-                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.complaints_311}</div>
+                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.count_311}</div>
                   </div>
                   <div className="bg-stone-100 rounded-lg p-2.5 text-center">
-                    <div className="text-[10px] text-stone-500">Vacant Parcels</div>
-                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.vacant_parcels}</div>
+                    <div className="text-[10px] text-stone-500">Env Nuisance</div>
+                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.count_env_nuisance}</div>
                   </div>
                   <div className="bg-stone-100 rounded-lg p-2.5 text-center">
                     <div className="text-[10px] text-stone-500">Trend</div>
-                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.trend || 'Stable'}</div>
+                    <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.decay_trend || 'stable'}</div>
                   </div>
                 </div>
               </div>
@@ -209,19 +209,19 @@ const App: React.FC = () => {
             {corridors.map((c, i) => (
               <button
                 key={i}
-                onClick={() => { handleSelectCorridor(c.corridor_id); setMobileTab('map'); }}
-                className={`w-full text-left px-4 py-3 border-b border-stone-100 hover:bg-stone-50 transition-colors ${activeCorridor === c.corridor_id ? 'bg-amber-50 border-l-2 border-l-amber-500' : ''}`}
+                onClick={() => { handleSelectCorridor(c.id); setMobileTab('map'); }}
+                className={`w-full text-left px-4 py-3 border-b border-stone-100 hover:bg-stone-50 transition-colors ${activeCorridor === c.id ? 'bg-amber-50 border-l-2 border-l-amber-500' : ''}`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-stone-800">{c.name || `Corridor ${c.corridor_id}`}</div>
-                    <div className="text-[10px] text-stone-400 mt-0.5">Blocks: {c.block_count} | Avg: {c.avg_blight?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-sm font-semibold text-stone-800">Corridor {c.id.replace('corridor_', '#')}</div>
+                    <div className="text-[10px] text-stone-400 mt-0.5">Blocks: {c.block_count} | Avg: {c.avg_score?.toFixed(1) || 'N/A'}</div>
                   </div>
                   <span className="text-xs font-bold px-2 py-0.5 rounded" style={{
-                    color: (c.avg_blight || 0) > 60 ? '#dc2626' : '#ea580c',
-                    backgroundColor: (c.avg_blight || 0) > 60 ? '#fef2f2' : '#fff7ed'
+                    color: (c.avg_score || 0) > 60 ? '#dc2626' : '#ea580c',
+                    backgroundColor: (c.avg_score || 0) > 60 ? '#fef2f2' : '#fff7ed'
                   }}>
-                    {c.avg_blight?.toFixed(0) || '—'}
+                    {c.avg_score?.toFixed(0) || '—'}
                   </span>
                 </div>
               </button>
