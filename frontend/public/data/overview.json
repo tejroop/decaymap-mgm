@@ -1,0 +1,1 @@
+{"total_blocks": 403, "total_code_violations": 70273, "total_311_requests": 143074, "avg_blight_score": 25.1, "max_blight_score": 61.9, "blocks_critical": 0, "blocks_high": 10, "blocks_elevated": 40, "blocks_moderate": 126, "blocks_stable": 227, "blocks_in_corridors": 16, "corridor_count": 16, "accelerating_count": 190}
