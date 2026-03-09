@@ -7,12 +7,14 @@ import {
   type ChatContext,
 } from '../aiExplainer';
 import { getBlightColor, getRiskLabel } from '../utils';
+import { StreamingMessage } from './StreamingMessage';
 
 interface AssistantPageProps {
   blocks: BlockCollection | null;
   corridors: Corridor[];
   overview: CityOverview | null;
   onNavigateToMap: (block?: BlockFeature) => void;
+  interventions?: { patrols: number; lighting: number; sanitation: number };
 }
 
 const AssistantPage: React.FC<AssistantPageProps> = ({
@@ -20,6 +22,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
   corridors,
   overview,
   onNavigateToMap,
+  interventions,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -29,7 +32,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const ctx: ChatContext = { blocks, corridors, overview, selectedBlock };
+  const ctx: ChatContext = { blocks, corridors, overview, selectedBlock, interventions };
   const suggestions = getSuggestedQuestions(ctx);
 
   useEffect(() => {
@@ -49,10 +52,14 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
 
     setTimeout(() => {
       const answer = answerQuestion(text, ctx);
-      const assistantMsg: ChatMessage = { role: 'assistant', text: answer, timestamp: Date.now() };
+      const assistantMsg: ChatMessage = { role: 'assistant', text: answer, timestamp: Date.now(), isStreaming: true };
       setMessages(prev => [...prev, assistantMsg]);
       setIsTyping(false);
     }, 500 + Math.random() * 800);
+  };
+
+  const handleStreamingComplete = (timestamp: number) => {
+    setMessages(prev => prev.map(m => m.timestamp === timestamp ? { ...m, isStreaming: false } : m));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -157,9 +164,8 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                       setMobileTab('chat');
                     }
                   }}
-                  className={`w-full text-left px-4 py-3 border-b border-stone-100 transition-all ${
-                    isActive ? 'bg-amber-50 border-l-4 border-l-amber-500' : 'hover:bg-stone-50'
-                  }`}
+                  className={`w-full text-left px-4 py-3 border-b border-stone-100 transition-all ${isActive ? 'bg-amber-50 border-l-4 border-l-amber-500' : 'hover:bg-stone-50'
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-stone-800 truncate">{p.name}</span>
@@ -264,9 +270,8 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex items-start gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        msg.role === 'user' ? 'bg-stone-200' : 'bg-gradient-to-br from-amber-500 to-orange-600'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-stone-200' : 'bg-gradient-to-br from-amber-500 to-orange-600'
+                        }`}>
                         {msg.role === 'user' ? (
                           <svg className="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -277,12 +282,19 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                           </svg>
                         )}
                       </div>
-                      <div className={`px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${
-                        msg.role === 'user'
+                      <div className={`px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user'
                           ? 'bg-amber-500 text-white rounded-tr-sm'
                           : 'bg-white border border-stone-200 text-stone-700 rounded-tl-sm shadow-sm'
-                      }`}>
-                        {msg.text}
+                        }`}>
+                        {msg.role === 'assistant' ? (
+                          <StreamingMessage
+                            text={msg.text}
+                            isStreaming={!!msg.isStreaming}
+                            onComplete={() => handleStreamingComplete(msg.timestamp)}
+                          />
+                        ) : (
+                          msg.text
+                        )}
                       </div>
                     </div>
                   </div>

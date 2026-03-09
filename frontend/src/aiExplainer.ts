@@ -53,10 +53,10 @@ export function explainBlockRisk(p: BlockProperties): string {
 
   // Trend
   if (p.decay_trend === 'accelerating') {
-    factors.push(`The decay trend is accelerating, meaning conditions are worsening faster than the city average`);
+    factors.push(`The decay trend is **accelerating**, meaning conditions are worsening faster than the city average`);
   }
 
-  return factors.join('. ') + '.';
+  return `### Risk Analysis: ${p.name}\n\n` + factors.map(f => `- ${f}.`).join('\n');
 }
 
 /** What citizens can do / what the city should prioritize */
@@ -195,6 +195,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   timestamp: number;
+  isStreaming?: boolean;
 }
 
 export interface ChatContext {
@@ -202,6 +203,7 @@ export interface ChatContext {
   corridors: Corridor[];
   overview: CityOverview | null;
   selectedBlock: BlockFeature | null;
+  interventions?: { patrols: number; lighting: number; sanitation: number };
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -212,7 +214,7 @@ const SUGGESTED_QUESTIONS = [
   "How does the scoring work?",
   "Where are the safest neighborhoods?",
   "Tell me about the data sources",
-  "What is decay velocity?",
+  "Explain the active simulation",
 ];
 
 export function getSuggestedQuestions(ctx: ChatContext): string[] {
@@ -247,6 +249,31 @@ export function answerQuestion(query: string, ctx: ChatContext): string {
     return "City overview data is still loading.";
   }
 
+  // Simulator Context
+  if (q.includes('simulate') || q.includes('simulation') || q.includes('predict') || q.includes('intervention') || q.includes('command')) {
+    if (ctx.interventions && (ctx.interventions.patrols > 0 || ctx.interventions.lighting > 0 || ctx.interventions.sanitation > 0)) {
+      const { patrols, lighting, sanitation } = ctx.interventions;
+      const reduction = (patrols * 2.4) + (lighting * 1.8) + (sanitation * 1.5);
+
+      let msg = `### ⚡ Active Prescriptive Simulation\n\nI see you have mobilized **${patrols + lighting + sanitation} new interventions** in the City Command simulator:\n\n`;
+      if (patrols > 0) msg += `- **Code Enforcement Patrols (+${patrols} hrs/wk):** Decreases environmental hazards and code violations.\n`;
+      if (lighting > 0) msg += `- **Street Lighting (+${lighting} blocks):** Deters illegal dumping and improves safety perception.\n`;
+      if (sanitation > 0) msg += `- **Sanitation Cleanup (+${sanitation} sites):** Rapidly clears abandoned properties.\n`;
+
+      msg += `\n**Predicted Impact:** These targeted interventions are predicted to dramatically reduce the 90-day risk trajectory by **${reduction.toFixed(1)} points** per block.`;
+
+      if (ctx.selectedBlock) {
+        const p = ctx.selectedBlock.properties;
+        const newScore = Math.max(10, p.composite_score - reduction);
+        msg += `\n\nFor **${p.name}**, the composite risk score drops from **${p.composite_score.toFixed(1)}** down to **${newScore.toFixed(1)}**, potentially shifting its risk classification entirely over the next quarter.`;
+      }
+
+      return msg;
+    } else {
+      return `To run a simulation, click the **CITY COMMAND** button in the top right to open the Prescriptive AI Simulator. Drag the resource sliders to allocate code enforcement patrols, street lighting, and sanitation cleanups. I will then analyze the simulated impact for you.`;
+    }
+  }
+
   // Urgent areas
   if (q.includes('urgent') || q.includes('worst') || q.includes('attention') || q.includes('critical') || q.includes('priority')) {
     if (!ctx.blocks) return "Block data is still loading.";
@@ -255,8 +282,8 @@ export function answerQuestion(query: string, ctx: ChatContext): string {
       .sort((a, b) => b.properties.composite_score - a.properties.composite_score)
       .slice(0, 5);
     if (critical.length === 0) return "No blocks currently meet the critical threshold.";
-    const list = critical.map((b, i) => `${i + 1}. ${b.properties.name} — score ${b.properties.composite_score.toFixed(1)}, ${b.properties.decay_trend} trend`).join('\n');
-    return `The most urgent blocks requiring intervention are:\n\n${list}\n\nThese blocks score above 50/100 and represent the highest concentration of code violations, infrastructure stress, and commercial decline in Montgomery.`;
+    const list = critical.map((b, i) => `${i + 1}. **${b.properties.name}** — score ${b.properties.composite_score.toFixed(1)} (${b.properties.decay_trend})`).join('\n');
+    return `### Most Urgent Blocks\n\n${list}\n\nThese blocks score above **50/100** and represent the highest concentration of code violations, infrastructure stress, and commercial decline in Montgomery.`;
   }
 
   // Safest areas
@@ -267,8 +294,8 @@ export function answerQuestion(query: string, ctx: ChatContext): string {
       .sort((a, b) => a.properties.composite_score - b.properties.composite_score)
       .slice(0, 5);
     if (stable.length === 0) return "No blocks currently meet the stable threshold — this warrants city-wide attention.";
-    const list = stable.map((b, i) => `${i + 1}. ${b.properties.name} — score ${b.properties.composite_score.toFixed(1)}`).join('\n');
-    return `The healthiest areas in Montgomery are:\n\n${list}\n\nThese neighborhoods maintain low complaint volumes, good access to services, and minimal infrastructure deterioration.`;
+    const list = stable.map((b, i) => `${i + 1}. **${b.properties.name}** — score ${b.properties.composite_score.toFixed(1)}`).join('\n');
+    return `### Safest Neighborhoods\n\n${list}\n\nThese neighborhoods maintain low complaint volumes, good access to services, and minimal infrastructure deterioration.`;
   }
 
   // Corridors
@@ -300,9 +327,9 @@ export function answerQuestion(query: string, ctx: ChatContext): string {
 
   // Data sources
   if (q.includes('data') || q.includes('source') || q.includes('where') && q.includes('from')) {
-    return `DecayMap MGM is built on 19 open datasets from Montgomery, Alabama's ArcGIS REST APIs:\n\n• Code Enforcement Violations\n• 311 Service Requests\n• Environmental Nuisance Reports\n• Traffic & Maintenance Requests\n• Food Establishment Permits\n• Points of Interest (schools, parks, pharmacies, fire stations, community centers)\n• Most Visited Places\n• Zoning Parcels & Districts\n\nAll data is public, sourced from the City of Montgomery's open data portal. Scores are computed algorithmically with no manual overrides — every number is traceable to specific records in the source datasets.`;
+    return `### DecayMap Data Sources\n\nDecayMap MGM is built on **19 open datasets** from Montgomery, Alabama's ArcGIS REST APIs:\n\n- Code Enforcement Violations\n- 311 Service Requests\n- Environmental Nuisance Reports\n- Traffic & Maintenance Requests\n- Food Establishment Permits\n- Points of Interest (schools, parks, pharmacies, etc.)\n- Zoning Parcels & Districts\n\nAll data is public, sourced from the City of Montgomery's open data portal. Scores are computed algorithmically with **no manual overrides** — every number is traceable to specific records.`;
   }
 
   // Fallback
-  return `I can help you understand Montgomery's urban decay data. Try asking about:\n\n• Why a specific block has its current risk rating\n• Which areas need the most urgent attention\n• How the scoring model works\n• What citizens or the city can do to help\n• The blight contagion corridor phenomenon\n• Service access and equity issues\n\nClick on any block on the map first, then ask me "Why is this block rated this way?" for a detailed explanation.`;
+  return `I can help you understand Montgomery's urban decay data. Try asking about:\n\n- Why a specific block has its current risk rating\n- Which areas need the most urgent attention\n- How the scoring model works\n- What citizens or the city can do to help\n- The blight contagion corridor phenomenon\n- How to use the active simulation engine\n\nClick on any block on the map first, then ask me "Why is this block rated this way?" for a detailed explanation.`;
 }

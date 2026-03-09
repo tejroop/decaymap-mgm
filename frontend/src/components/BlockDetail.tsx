@@ -1,31 +1,51 @@
 import React, { useState } from 'react';
 import type { BlockFeature } from '../types';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { getBlightColor, getRiskLabel, getTrendSymbol } from '../utils';
 import { explainBlockRisk, explainBlockAction, explainBlockAccess } from '../aiExplainer';
+
+const RiskRadar = ({ data }: { data: any[] }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+      <PolarGrid stroke="#e5e5e5" />
+      <PolarAngleAxis dataKey="metric" tick={{ fill: '#78716c', fontSize: 10, fontWeight: 600 }} />
+      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+      <Radar name="Risk" dataKey="score" stroke="#dc2626" fill="#ef4444" fillOpacity={0.4} />
+    </RadarChart>
+  </ResponsiveContainer>
+);
 
 interface BlockDetailProps {
   feature: BlockFeature;
   onClose: () => void;
+  interventions: { patrols: number; lighting: number; sanitation: number };
 }
 
-const BlockDetail: React.FC<BlockDetailProps> = ({ feature, onClose }) => {
+const BlockDetail: React.FC<BlockDetailProps> = ({ feature, onClose, interventions }) => {
   const [showAI, setShowAI] = useState(false);
   const props = feature.properties;
-  const color = getBlightColor(props.composite_score);
-  const riskColor =
-    props.risk_level === 'critical'
-      ? '#7f1d1d'
-      : props.risk_level === 'high'
-      ? '#b91c1c'
-      : props.risk_level === 'elevated'
-      ? '#dc2626'
-      : '#ea580c';
 
-  const dimensions = [
-    { label: 'Decay Velocity', value: props.decay_velocity_score },
-    { label: 'Commercial Decline', value: props.commercial_decline_score },
-    { label: 'Infrastructure Stress', value: props.infrastructure_stress_score },
-    { label: 'Anchor Strength', value: props.anchor_strength_score },
+  // Apply Predictive Reductions
+  const reduction = (interventions.patrols * 2.4) + (interventions.lighting * 1.8) + (interventions.sanitation * 1.5);
+  const adjustedScore = Math.max(10, props.composite_score - reduction);
+
+  // Use the adjusted score for colors
+  const color = getBlightColor(adjustedScore);
+  const riskColor =
+    adjustedScore >= 60
+      ? '#7f1d1d'
+      : adjustedScore >= 40
+        ? '#b91c1c'
+        : adjustedScore >= 20
+          ? '#dc2626'
+          : '#ea580c';
+
+  const radarData = [
+    { metric: 'Velocity', score: props.decay_velocity_score },
+    { metric: 'Commercial', score: props.commercial_decline_score },
+    { metric: 'Infrastructure', score: props.infrastructure_stress_score },
+    { metric: 'Anchor Lack', score: props.anchor_strength_score },
+    { metric: 'Env Hazard', score: Math.min(100, props.count_env_nuisance * 15) },
   ];
 
   return (
@@ -37,12 +57,7 @@ const BlockDetail: React.FC<BlockDetailProps> = ({ feature, onClose }) => {
         aria-label="Close"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
@@ -57,51 +72,43 @@ const BlockDetail: React.FC<BlockDetailProps> = ({ feature, onClose }) => {
             {getRiskLabel(props.risk_level)}
           </span>
           {props.decay_trend && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold text-stone-700 bg-stone-100">
-              {getTrendSymbol(props.decay_trend)} {props.decay_trend.charAt(0).toUpperCase() + props.decay_trend.slice(1)}
+            <span className="px-3 py-1 rounded-full text-xs font-semibold text-stone-700 bg-stone-100 uppercase border border-stone-200">
+              {getTrendSymbol(props.decay_trend)} {props.decay_trend}
             </span>
           )}
           {props.in_corridor && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold text-white bg-blue-600">
-              In Corridor
+            <span className="px-3 py-1 rounded-full text-xs font-semibold text-white bg-blue-600 uppercase">
+              Contagion Zone
             </span>
           )}
         </div>
       </div>
 
       {/* Large Score Display */}
-      <div className="mb-6 p-4 rounded-lg bg-stone-50 border border-stone-200">
-        <div className="text-xs text-stone-500 uppercase tracking-wider mb-1">Composite Blight Score</div>
-        <div
-          className="text-5xl font-bold"
-          style={{ color }}
-        >
-          {props.composite_score.toFixed(1)}
+      <div className="mb-6 p-4 rounded-lg bg-stone-50 border border-stone-200 shadow-inner flex items-center justify-between">
+        <div>
+          <div className="text-xs text-stone-500 uppercase tracking-wider mb-1">Composite Risk Score</div>
+          <div className="text-xs text-stone-400">Predicted 90-Day Trajectory</div>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl font-black drop-shadow-md flex items-end justify-end gap-1" style={{ color }}>
+            {adjustedScore.toFixed(1)}
+            {reduction > 0 && (
+              <span className="text-sm font-bold text-emerald-500 mb-1 flex items-center">
+                <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+                {reduction.toFixed(1)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Dimension Score Bars */}
-      <div className="mb-6">
-        <div className="text-xs text-stone-500 uppercase tracking-wider mb-3">Score Dimensions</div>
-        <div className="space-y-3">
-          {dimensions.map((dim) => (
-            <div key={dim.label}>
-              <div className="flex justify-between mb-1">
-                <span className="text-xs text-stone-600 font-medium">{dim.label}</span>
-                <span className="text-xs font-semibold text-stone-700">{dim.value.toFixed(1)}</span>
-              </div>
-              <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(dim.value, 100)}%`,
-                    backgroundColor: getBlightColor(dim.value),
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Radar Chart */}
+      <div className="mb-6 -mx-4 h-[250px] relative z-10 w-full">
+        <div className="absolute top-0 left-6 text-xs text-stone-500 uppercase tracking-wider">Risk Profile Radar</div>
+        <RiskRadar data={radarData} />
       </div>
 
       {/* Metrics Section */}

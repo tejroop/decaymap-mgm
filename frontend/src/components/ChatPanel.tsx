@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { BlockCollection, BlockFeature, Corridor, CityOverview } from '../types';
 import { answerQuestion, getSuggestedQuestions, type ChatMessage, type ChatContext } from '../aiExplainer';
+import { StreamingMessage } from './StreamingMessage';
 
 interface ChatPanelProps {
   blocks: BlockCollection | null;
   corridors: Corridor[];
   overview: CityOverview | null;
   selectedBlock: BlockFeature | null;
+  interventions?: { patrols: number; lighting: number; sanitation: number };
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ blocks, corridors, overview, selectedBlock }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ blocks, corridors, overview, selectedBlock, interventions }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -23,7 +25,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ blocks, corridors, overview, sele
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const ctx: ChatContext = { blocks, corridors, overview, selectedBlock };
+  const ctx: ChatContext = { blocks, corridors, overview, selectedBlock, interventions };
   const suggestions = getSuggestedQuestions(ctx);
 
   useEffect(() => {
@@ -59,10 +61,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ blocks, corridors, overview, sele
     // Simulate brief "thinking" delay for realism
     setTimeout(() => {
       const answer = answerQuestion(text, ctx);
-      const assistantMsg: ChatMessage = { role: 'assistant', text: answer, timestamp: Date.now() };
+      const assistantMsg: ChatMessage = { role: 'assistant', text: answer, timestamp: Date.now(), isStreaming: true };
       setMessages(prev => [...prev, assistantMsg]);
       setIsTyping(false);
     }, 400 + Math.random() * 600);
+  };
+
+  const handleStreamingComplete = (timestamp: number) => {
+    setMessages(prev => prev.map(m => m.timestamp === timestamp ? { ...m, isStreaming: false } : m));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -120,13 +126,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ blocks, corridors, overview, sele
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[85%] px-3 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-line ${
-                msg.role === 'user'
+              className={`max-w-[85%] px-3 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user'
                   ? 'bg-amber-500 text-white rounded-br-sm'
                   : 'bg-stone-100 text-stone-700 rounded-bl-sm'
-              }`}
+                }`}
             >
-              {msg.text}
+              {msg.role === 'assistant' ? (
+                <StreamingMessage
+                  text={msg.text}
+                  isStreaming={!!msg.isStreaming}
+                  onComplete={() => handleStreamingComplete(msg.timestamp)}
+                />
+              ) : (
+                msg.text
+              )}
             </div>
           </div>
         ))}

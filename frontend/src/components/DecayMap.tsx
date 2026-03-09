@@ -40,6 +40,7 @@ interface DecayMapProps {
   onSelect: (feature: BlockFeature | null) => void;
   corridors: Corridor[];
   activeCorridor: string | null;
+  interventions: { patrols: number; lighting: number; sanitation: number };
 }
 
 function FlyToSelected({ selected }: { selected: BlockFeature | null }) {
@@ -81,7 +82,7 @@ function FlyToCorridor({ corridor, corridors }: { corridor: string | null; corri
   return null;
 }
 
-export default function DecayMap({ data, selected, onSelect, corridors, activeCorridor }: DecayMapProps) {
+export default function DecayMap({ data, selected, onSelect, corridors, activeCorridor, interventions }: DecayMapProps) {
   const geoJsonRef = useRef<L.GeoJSON | null>(null);
 
   // Filter out features with invalid coordinates to prevent Leaflet NaN crashes
@@ -113,12 +114,19 @@ export default function DecayMap({ data, selected, onSelect, corridors, activeCo
     }
   }
 
+  const getAdjustedScore = (baseScore: number) => {
+    const reduction = (interventions.patrols * 2.4) + (interventions.lighting * 1.8) + (interventions.sanitation * 1.5);
+    return { score: Math.max(10, baseScore - reduction), reduction };
+  };
+
   const style = (feature: any) => {
-    const score = feature.properties.composite_score;
+    const { score } = getAdjustedScore(feature.properties.composite_score);
     const id = feature.properties.id;
     const isSelected = selected?.properties.id === id;
     const isInCorridor = corridorBlockIds.has(id);
     const isInActiveCorridor = activeCorridorBlockIds.has(id);
+
+    const isAccelerating = feature.properties.decay_trend === 'accelerating' && score > 30;
 
     return {
       fillColor: getBlightColor(score),
@@ -127,6 +135,7 @@ export default function DecayMap({ data, selected, onSelect, corridors, activeCo
       color: isSelected ? '#ffffff' : isInActiveCorridor ? '#dc2626' : isInCorridor ? '#ef4444' : '#a8a29e',
       opacity: isSelected ? 1 : 0.8,
       dashArray: isInCorridor && !isSelected ? '5,5' : undefined,
+      className: isAccelerating && !isSelected ? 'rapid-decay-pulse pointer-events-auto' : 'pointer-events-auto',
     };
   };
 
@@ -139,11 +148,14 @@ export default function DecayMap({ data, selected, onSelect, corridors, activeCo
         l.bringToFront();
 
         const p = feature.properties;
+        const { score, reduction } = getAdjustedScore(p.composite_score);
+
         l.bindTooltip(
           `<div style="font-family:'Source Sans 3',sans-serif">
             <div style="font-size:14px;font-weight:700;color:#292524">${p.name}</div>
             <div style="font-size:12px;color:#78716c;margin-top:3px">
-              Score: <strong style="color:${getBlightColor(p.composite_score)}">${p.composite_score}</strong>
+              Score: <strong style="color:${getBlightColor(score)}">${score.toFixed(1)}</strong>
+              ${reduction > 0 ? `<span style="color:#10b981;font-size:10px;margin-left:4px">(-${reduction.toFixed(1)})</span>` : ''}
               &nbsp;·&nbsp;${getRiskLabel(p.risk_level)}
               ${p.in_corridor ? ' <span style="color:#dc2626;font-weight:700">IN CORRIDOR</span>' : ''}
             </div>
