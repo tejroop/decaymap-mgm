@@ -25,6 +25,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockFeature | null>(null);
+  const [mobileTab, setMobileTab] = useState<'chat' | 'browse'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -66,35 +67,51 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
   const topBlocks = [...criticalBlocks].sort((a, b) => b.properties.composite_score - a.properties.composite_score).slice(0, 8);
 
   return (
-    <div className="w-full h-screen bg-stone-50 flex flex-col">
+    <div className="w-full flex flex-col bg-stone-50" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="px-6 py-4 bg-white border-b border-stone-200 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+      <div className="px-4 md:px-6 py-3 md:py-4 bg-white border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+            <svg className="w-4 h-4 md:w-6 md:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
           </div>
           <div>
-            <h1 className="font-serif text-xl text-stone-800">City Life Assistant</h1>
-            <p className="text-xs text-stone-500">Explainable AI for Montgomery's Urban Data</p>
+            <h1 className="font-serif text-sm md:text-xl text-stone-800">City Life Assistant</h1>
+            <p className="text-[10px] md:text-xs text-stone-500 hidden md:block">Explainable AI for Montgomery's Urban Data</p>
           </div>
         </div>
         <button
           onClick={() => onNavigateToMap()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors text-sm text-stone-700 font-medium"
+          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors text-xs md:text-sm text-stone-700 font-medium"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
-          Back to Map
+          <span className="hidden md:inline">Back to</span> Map
+        </button>
+      </div>
+
+      {/* Mobile tab switcher */}
+      <div className="flex md:hidden bg-white border-b border-stone-200 flex-shrink-0">
+        <button
+          onClick={() => setMobileTab('chat')}
+          className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${mobileTab === 'chat' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-stone-400'}`}
+        >
+          💡 Chat
+        </button>
+        <button
+          onClick={() => setMobileTab('browse')}
+          className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${mobileTab === 'browse' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-stone-400'}`}
+        >
+          ⚠️ Critical Blocks
         </button>
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — Block browser */}
-        <div className="w-[300px] border-r border-stone-200 bg-white flex flex-col flex-shrink-0">
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        {/* Sidebar — Block browser (desktop always, mobile when browsing) */}
+        <div className={`${mobileTab === 'browse' ? 'flex' : 'hidden'} md:flex w-full md:w-[300px] border-r border-stone-200 bg-white flex-col flex-shrink-0`}>
           {/* City summary card */}
           <div className="p-4 border-b border-stone-200">
             <h3 className="font-serif text-sm font-semibold text-stone-800 mb-2">City Overview</h3>
@@ -136,8 +153,8 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                   onClick={() => {
                     setSelectedBlock(isActive ? null : block);
                     if (!isActive) {
-                      // Auto-ask about the block
                       handleSend(`Why is ${p.name} rated ${p.risk_level}?`);
+                      setMobileTab('chat');
                     }
                   }}
                   className={`w-full text-left px-4 py-3 border-b border-stone-100 transition-all ${
@@ -187,33 +204,33 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col bg-stone-50">
+        <div className={`${mobileTab === 'chat' ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-stone-50`} style={{ minHeight: 0 }}>
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
             {messages.length === 0 ? (
               /* Welcome state */
               <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-8 pt-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                <div className="text-center mb-6 md:mb-8 pt-4 md:pt-8">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-3 md:mb-4">
+                    <svg className="w-7 h-7 md:w-9 md:h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                   </div>
-                  <h2 className="font-serif text-2xl text-stone-800 mb-2">
+                  <h2 className="font-serif text-xl md:text-2xl text-stone-800 mb-2">
                     What would you like to know about Montgomery?
                   </h2>
-                  <p className="text-sm text-stone-500 max-w-md mx-auto">
-                    I analyze 19 open datasets to explain urban decay patterns, blight corridors, and neighborhood health across the city. Every answer is traceable to real data.
+                  <p className="text-xs md:text-sm text-stone-500 max-w-md mx-auto">
+                    I analyze 19 open datasets to explain urban decay patterns, blight corridors, and neighborhood health. Every answer is traceable to real data.
                   </p>
                 </div>
 
                 {/* Suggestion grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                   {suggestions.map((q, i) => (
                     <button
                       key={i}
                       onClick={() => handleSend(q)}
-                      className="text-left p-4 rounded-xl bg-white border border-stone-200 hover:border-amber-300 hover:shadow-md transition-all group"
+                      className="text-left p-3 md:p-4 rounded-xl bg-white border border-stone-200 hover:border-amber-300 hover:shadow-md transition-all group"
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
@@ -226,7 +243,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                 </div>
 
                 {/* Data transparency callout */}
-                <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                <div className="mt-6 md:mt-8 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
                   <div className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -235,7 +252,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                       <h4 className="text-sm font-semibold text-amber-800 mb-1">Explainable by Design</h4>
                       <p className="text-xs text-stone-600 leading-relaxed">
                         Every score, rating, and recommendation traces back to specific data points from Montgomery's open datasets.
-                        No black boxes — ask "why?" about any block and get a transparent breakdown of the factors behind its rating.
+                        No black boxes — ask "why?" about any block and get a transparent breakdown.
                       </p>
                     </div>
                   </div>
@@ -247,7 +264,6 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex items-start gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                      {/* Avatar */}
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         msg.role === 'user' ? 'bg-stone-200' : 'bg-gradient-to-br from-amber-500 to-orange-600'
                       }`}>
@@ -261,7 +277,6 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                           </svg>
                         )}
                       </div>
-                      {/* Bubble */}
                       <div className={`px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${
                         msg.role === 'user'
                           ? 'bg-amber-500 text-white rounded-tr-sm'
@@ -297,28 +312,28 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
           </div>
 
           {/* Input area */}
-          <div className="px-8 py-4 border-t border-stone-200 bg-white flex-shrink-0">
-            <div className="max-w-2xl mx-auto flex gap-3">
+          <div className="px-3 md:px-8 py-3 md:py-4 border-t border-stone-200 bg-white flex-shrink-0">
+            <div className="max-w-2xl mx-auto flex gap-2 md:gap-3">
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about neighborhoods, corridors, scores, or what to do..."
-                className="flex-1 px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300"
+                placeholder="Ask about urban decay..."
+                className="flex-1 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300"
               />
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim() || isTyping}
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-sm hover:from-amber-600 hover:to-orange-700 disabled:opacity-40 transition-all flex items-center gap-2"
+                className="px-4 md:px-5 py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-sm hover:from-amber-600 hover:to-orange-700 disabled:opacity-40 transition-all flex items-center gap-1.5 md:gap-2"
               >
-                Send
+                <span className="hidden md:inline">Send</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               </button>
             </div>
-            <div className="max-w-2xl mx-auto mt-2 text-center">
+            <div className="max-w-2xl mx-auto mt-1.5 md:mt-2 text-center hidden md:block">
               <span className="text-[10px] text-stone-400">
                 Explainable AI · Every answer traces to real Montgomery open data · No black boxes
               </span>
