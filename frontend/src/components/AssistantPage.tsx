@@ -69,31 +69,31 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
   return (
     <div className="w-full flex flex-col bg-stone-50" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="px-4 md:px-6 py-3 md:py-4 bg-white border-b border-stone-200 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-            <svg className="w-4 h-4 md:w-6 md:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+      <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2 lg:gap-3">
+          <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+            <svg className="w-4 h-4 lg:w-6 lg:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
           </div>
           <div>
-            <h1 className="font-serif text-sm md:text-xl text-stone-800">City Life Assistant</h1>
-            <p className="text-[10px] md:text-xs text-stone-500 hidden md:block">Explainable AI for Montgomery's Urban Data</p>
+            <h1 className="font-serif text-sm lg:text-xl text-stone-800">City Life Assistant</h1>
+            <p className="text-[10px] lg:text-xs text-stone-500 hidden lg:block">Explainable AI for Montgomery's Urban Data</p>
           </div>
         </div>
         <button
           onClick={() => onNavigateToMap()}
-          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors text-xs md:text-sm text-stone-700 font-medium"
+          className="flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors text-xs lg:text-sm text-stone-700 font-medium"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
-          <span className="hidden md:inline">Back to</span> Map
+          <span className="hidden lg:inline">Back to</span> Map
         </button>
       </div>
 
       {/* Mobile tab switcher */}
-      <div className="flex md:hidden bg-white border-b border-stone-200 flex-shrink-0">
+      <div className="flex lg:hidden bg-white border-b border-stone-200 flex-shrink-0">
         <button
           onClick={() => setMobileTab('chat')}
           className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${mobileTab === 'chat' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-stone-400'}`}
@@ -111,7 +111,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
         {/* Sidebar — Block browser (desktop always, mobile when browsing) */}
-        <div className={`${mobileTab === 'browse' ? 'flex' : 'hidden'} md:flex w-full md:w-[300px] border-r border-stone-200 bg-white flex-col flex-shrink-0`}>
+        <div className={`${mobileTab === 'browse' ? 'flex' : 'hidden'} lg:flex w-full lg:w-[300px] border-r border-stone-200 bg-white flex-col flex-shrink-0`}>
           {/* City summary card */}
           <div className="p-4 border-b border-stone-200">
             <h3 className="font-serif text-sm font-semibold text-stone-800 mb-2">City Overview</h3>
@@ -204,33 +204,33 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
         </div>
 
         {/* Chat area */}
-        <div className={`${mobileTab === 'chat' ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-stone-50`} style={{ minHeight: 0 }}>
+        <div className={`${mobileTab === 'chat' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col bg-stone-50`} style={{ minHeight: 0 }}>
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
+          <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-4 lg:py-6">
             {messages.length === 0 ? (
               /* Welcome state */
               <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-6 md:mb-8 pt-4 md:pt-8">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-3 md:mb-4">
-                    <svg className="w-7 h-7 md:w-9 md:h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                <div className="text-center mb-6 lg:mb-8 pt-4 lg:pt-8">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-3 lg:mb-4">
+                    <svg className="w-7 h-7 lg:w-9 lg:h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                   </div>
-                  <h2 className="font-serif text-xl md:text-2xl text-stone-800 mb-2">
+                  <h2 className="font-serif text-xl lg:text-2xl text-stone-800 mb-2">
                     What would you like to know about Montgomery?
                   </h2>
-                  <p className="text-xs md:text-sm text-stone-500 max-w-md mx-auto">
+                  <p className="text-xs lg:text-sm text-stone-500 max-w-md mx-auto">
                     I analyze 19 open datasets to explain urban decay patterns, blight corridors, and neighborhood health. Every answer is traceable to real data.
                   </p>
                 </div>
 
                 {/* Suggestion grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3">
                   {suggestions.map((q, i) => (
                     <button
                       key={i}
                       onClick={() => handleSend(q)}
-                      className="text-left p-3 md:p-4 rounded-xl bg-white border border-stone-200 hover:border-amber-300 hover:shadow-md transition-all group"
+                      className="text-left p-3 lg:p-4 rounded-xl bg-white border border-stone-200 hover:border-amber-300 hover:shadow-md transition-all group"
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
@@ -243,7 +243,7 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
                 </div>
 
                 {/* Data transparency callout */}
-                <div className="mt-6 md:mt-8 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                <div className="mt-6 lg:mt-8 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
                   <div className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -312,28 +312,28 @@ const AssistantPage: React.FC<AssistantPageProps> = ({
           </div>
 
           {/* Input area */}
-          <div className="px-3 md:px-8 py-3 md:py-4 border-t border-stone-200 bg-white flex-shrink-0">
-            <div className="max-w-2xl mx-auto flex gap-2 md:gap-3">
+          <div className="px-3 lg:px-8 py-3 lg:py-4 border-t border-stone-200 bg-white flex-shrink-0">
+            <div className="max-w-2xl mx-auto flex gap-2 lg:gap-3">
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about urban decay..."
-                className="flex-1 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300"
+                className="flex-1 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300"
               />
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim() || isTyping}
-                className="px-4 md:px-5 py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-sm hover:from-amber-600 hover:to-orange-700 disabled:opacity-40 transition-all flex items-center gap-1.5 md:gap-2"
+                className="px-4 lg:px-5 py-2.5 lg:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-sm hover:from-amber-600 hover:to-orange-700 disabled:opacity-40 transition-all flex items-center gap-1.5 lg:gap-2"
               >
-                <span className="hidden md:inline">Send</span>
+                <span className="hidden lg:inline">Send</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               </button>
             </div>
-            <div className="max-w-2xl mx-auto mt-1.5 md:mt-2 text-center hidden md:block">
+            <div className="max-w-2xl mx-auto mt-1.5 lg:mt-2 text-center hidden lg:block">
               <span className="text-[10px] text-stone-400">
                 Explainable AI · Every answer traces to real Montgomery open data · No black boxes
               </span>

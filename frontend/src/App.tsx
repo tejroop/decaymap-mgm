@@ -85,12 +85,12 @@ const App: React.FC = () => {
   return (
     <div className="w-full bg-stone-50 flex flex-col" style={{ height: '100dvh' }}>
       {/* Desktop header */}
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <OverviewBar overview={overview} />
       </div>
 
       {/* === DESKTOP LAYOUT === */}
-      <div className="hidden md:flex relative flex-1 overflow-hidden">
+      <div className="hidden lg:flex relative flex-1 overflow-hidden">
         {corridors.length > 0 && (
           <CorridorPanel corridors={corridors} onSelectCorridor={handleSelectCorridor} activeCorridor={activeCorridor} blocks={blocks} />
         )}
@@ -124,7 +124,7 @@ const App: React.FC = () => {
       </div>
 
       {/* === MOBILE LAYOUT === */}
-      <div className="flex md:hidden flex-1 flex-col overflow-hidden">
+      <div className="flex lg:hidden flex-1 flex-col overflow-hidden">
         {/* Mobile header */}
         <div className="bg-white border-b border-stone-200 px-3 py-2 flex items-center justify-between flex-shrink-0">
           <div>
