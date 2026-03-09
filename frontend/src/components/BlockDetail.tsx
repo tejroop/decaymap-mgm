@@ -49,11 +49,11 @@ const BlockDetail: React.FC<BlockDetailProps> = ({ feature, onClose, interventio
   ];
 
   return (
-    <div className="float-up absolute bottom-4 left-4 max-w-[420px] bg-white/95 backdrop-blur rounded-xl shadow-2xl p-6 border border-stone-100" style={{ zIndex: 1000 }}>
+    <div className="float-up absolute bottom-4 left-4 max-w-[420px] bg-white/95 backdrop-blur rounded-xl shadow-2xl p-6 border border-stone-100 overflow-y-auto" style={{ zIndex: 9999, maxHeight: 'calc(100vh - 32px)' }}>
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors"
+        className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors bg-white/80 rounded-full p-1"
         aria-label="Close"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
