@@ -7,6 +7,7 @@ import CorridorPanel from './components/CorridorPanel';
 import ChatPanel from './components/ChatPanel';
 import AssistantPage from './components/AssistantPage';
 import InstallPrompt from './components/InstallPrompt';
+import SyncStatus from './components/SyncStatus';
 
 type Page = 'map' | 'assistant';
 
@@ -131,18 +132,21 @@ const App: React.FC = () => {
             <h1 className="font-serif text-base font-bold text-stone-800">DecayMap <span className="text-amber-700">MGM</span></h1>
             <p className="text-[10px] text-stone-400">Urban Decay Intelligence</p>
           </div>
-          {overview && (
-            <div className="flex items-center gap-3">
-              <div className="text-center">
-                <div className="text-sm font-bold text-red-600">{overview.blocks_critical}</div>
-                <div className="text-[8px] text-stone-400">CRITICAL</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-stone-700">{overview.total_blocks}</div>
-                <div className="text-[8px] text-stone-400">BLOCKS</div>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {overview && (
+              <>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-red-600">{overview.blocks_critical}</div>
+                  <div className="text-[8px] text-stone-400">CRITICAL</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-stone-700">{overview.total_blocks}</div>
+                  <div className="text-[8px] text-stone-400">BLOCKS</div>
+                </div>
+              </>
+            )}
+            <SyncStatus />
+          </div>
         </div>
 
         {/* Mobile content */}
@@ -158,7 +162,7 @@ const App: React.FC = () => {
 
             {/* Mobile bottom sheet for selected block */}
             {selectedBlock && (
-              <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-sm border-t border-stone-200 rounded-t-2xl shadow-2xl" style={{ maxHeight: '45vh', overflowY: 'auto' }}>
+              <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-sm border-t border-stone-200 rounded-t-2xl shadow-2xl" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
                 <div className="flex justify-center pt-2 pb-1">
                   <div className="w-10 h-1 rounded-full bg-stone-300" />
                 </div>
@@ -201,8 +205,6 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
-
-            <ChatPanel blocks={blocks} corridors={corridors} overview={overview} selectedBlock={selectedBlock} />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto bg-white">
