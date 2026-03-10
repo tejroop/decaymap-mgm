@@ -203,30 +203,36 @@ const App: React.FC = () => {
 
             {/* Mobile bottom sheet for selected block */}
             {selectedBlock && (
-              <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-sm border-t border-stone-200 rounded-t-2xl shadow-2xl" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
-                <div className="flex justify-center pt-2 pb-1">
-                  <div className="w-10 h-1 rounded-full bg-stone-300" />
+              <div className="absolute bottom-[48px] left-0 right-0 z-[1001] bg-white/95 backdrop-blur-sm border-t border-stone-200 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] flex flex-col" style={{ height: '50vh', paddingBottom: '20px' }}>
+                {/* Drag Handle Area */}
+                <div className="flex justify-center pt-3 pb-2 flex-shrink-0 bg-white/50 rounded-t-2xl">
+                  <div className="w-12 h-1.5 rounded-full bg-stone-300" />
                 </div>
-                <div className="flex items-center justify-between px-4 pb-2">
-                  <div>
-                    <h3 className="text-sm font-bold text-stone-800">{selectedBlock.properties.name || `Block ${selectedBlock.properties.id}`}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-2xl font-black" style={{ color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a' }}>
-                        {selectedBlock.properties.composite_score.toFixed(0)}
-                      </span>
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{
-                        backgroundColor: selectedBlock.properties.composite_score > 60 ? '#fef2f2' : selectedBlock.properties.composite_score > 40 ? '#fff7ed' : '#f0fdf4',
-                        color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a'
-                      }}>
-                        {selectedBlock.properties.composite_score > 60 ? 'CRITICAL' : selectedBlock.properties.composite_score > 40 ? 'AT RISK' : 'STABLE'}
-                      </span>
+
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto w-full px-4">
+                  <div className="flex items-start justify-between pb-3 pt-1">
+                    <div>
+                      <h3 className="text-sm font-bold text-stone-800">{selectedBlock.properties.name || `Block ${selectedBlock.properties.id}`}</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-2xl font-black" style={{ color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a' }}>
+                          {selectedBlock.properties.composite_score.toFixed(0)}
+                        </span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{
+                          backgroundColor: selectedBlock.properties.composite_score > 60 ? '#fef2f2' : selectedBlock.properties.composite_score > 40 ? '#fff7ed' : '#f0fdf4',
+                          color: selectedBlock.properties.composite_score > 60 ? '#dc2626' : selectedBlock.properties.composite_score > 40 ? '#ea580c' : '#16a34a'
+                        }}>
+                          {selectedBlock.properties.composite_score > 60 ? 'CRITICAL' : selectedBlock.properties.composite_score > 40 ? 'AT RISK' : 'STABLE'}
+                        </span>
+                      </div>
                     </div>
+                    <button onClick={() => setSelectedBlock(null)} className="text-stone-400 hover:text-stone-700 p-2 bg-stone-50 rounded-full mt-1">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                   </div>
-                  <button onClick={() => setSelectedBlock(null)} className="text-stone-400 hover:text-stone-700 p-2 -mr-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
                 </div>
-                <div className="px-4 pb-4 grid grid-cols-2 gap-2">
+
+                <div className="grid grid-cols-2 gap-3 pb-8">
                   <div className="bg-stone-100 rounded-lg p-2.5 text-center">
                     <div className="text-[10px] text-stone-500">Code Violations</div>
                     <div className="text-sm text-stone-800 font-bold">{selectedBlock.properties.count_code_violations}</div>
